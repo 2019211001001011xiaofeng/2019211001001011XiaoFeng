@@ -3,10 +3,7 @@ package com.XiaoFeng.Dao;
 import com.XiaoFeng.model.Product;
 
 import java.io.InputStream;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,12 +58,12 @@ public class ProductDao implements  IProductDao{
     @Override
     public Product findById(Integer productId, Connection con) throws SQLException {
         Product product=null;
-        String sql = "select * from Product where ProductId=? ";
+        String sql = "SELECT * FROM Product WHERE ProductId=? ";
         PreparedStatement pt = con.prepareStatement(sql);
         pt.setInt(1, productId);
         ResultSet rs=pt.executeQuery();
-        if(rs.next()){
-            product=new Product();
+        product=new Product();
+        while(rs.next()){
             product.setProductId(rs.getInt("ProductId"));
             product.setProductName(rs.getString("ProductName"));
             product.setProductDescription(rs.getString("ProductDescription"));
@@ -81,12 +78,12 @@ public class ProductDao implements  IProductDao{
     @Override
     public List<Product> findByCategoryId(int categoryId, Connection con) throws SQLException {
         Product product=null;
-        String sql = "select * from Product where CategoryId=? ";
+        String sql = "SELECT * FROM Product WHERE CategoryId=? ";
         PreparedStatement pt = con.prepareStatement(sql);
         pt.setInt(1, categoryId);
         ResultSet rs=pt.executeQuery();
         List<Product> List=new ArrayList<>();
-        if(rs.next()){
+        while(rs.next()){
             product=new Product();
             product.setProductId(rs.getInt("ProductId"));
             product.setProductName(rs.getString("ProductName"));
@@ -124,11 +121,11 @@ public class ProductDao implements  IProductDao{
     @Override
     public List<Product> findAll(Connection con) throws SQLException {
         Product product=null;
-        String sql = "select * FROM Product";
+        String sql = "SELECT * FROM Product";
         PreparedStatement pt = con.prepareStatement(sql);
         ResultSet rs=pt.executeQuery();
         List<Product> List=new ArrayList<>();
-        if(rs.next()){
+        while(rs.next()){
             product=new Product();
             product.setProductId(rs.getInt("ProductId"));
             product.setProductName(rs.getString("ProductName"));
@@ -176,5 +173,17 @@ public class ProductDao implements  IProductDao{
             List.add(product);
         }
         return List;
+    }
+    public byte[] getPictureById(Integer productId, Connection con) throws SQLException {
+        byte[] imgBytes=null;
+        String sql="select picture from Product where ProductId=?";
+        PreparedStatement pt=con.prepareStatement(sql);
+        pt.setInt(1,productId);
+        ResultSet rs=pt.executeQuery();
+        while(rs.next()){
+            Blob blob=rs.getBlob("picture");
+            imgBytes=blob.getBytes(1,(int)blob.length());
+        }
+        return imgBytes;
     }
 }

@@ -1,49 +1,47 @@
 package com.XiaoFeng.controller;
 
 import com.XiaoFeng.Dao.ProductDao;
-import com.XiaoFeng.model.Product;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
 import javax.servlet.annotation.*;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.List;
 
-@WebServlet(name = "ProductListServlet", value = "/admin/productList")
-public class ProductListServlet extends HttpServlet {
-    Connection con =null;
-    public void init(){
-        try {
-            super.init();
-            con = (Connection) getServletContext().getAttribute("con");
-        } catch (ServletException e) {
-            e.printStackTrace();
-        }
+@WebServlet(name = "GetImgServlet", value = "/getImg")
+public class GetImgServlet extends HttpServlet {
+    Connection con=null;
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        con= (Connection) getServletContext().getAttribute("con");
     }
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        System.out.println("到达此处1");
+        int id=0;
+        if(request.getParameter("id")!=null)
+            id=Integer.parseInt(request.getParameter("id"));
         ProductDao productDao=new ProductDao();
+        byte[] imgByte=new byte[0];
         try {
             if(con==null){
+                System.out.println("Img未连接");
                 con = DriverManager.getConnection("jdbc:sqlserver://localhost:1433;databaseName=userdb","sa","123456");
             }
-            List<Product> productList=productDao.findAll(con);
-            if(productList==null){
-                System.out.println("没有任何信息");
+            imgByte =productDao.getPictureById(id,con);
+            if(imgByte!=null){
+                response.setContentType("image/gif");
+                OutputStream out=response.getOutputStream();
+                out.write(imgByte);
+                out.flush();
             }
-            else {
-                System.out.println(productList);
-            }
-            request.setAttribute("productList",productList);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
-        String path="/WEB-INF/views/admin/productList.jsp";
-        request.getRequestDispatcher(path).forward(request,response);
+
     }
 
     @Override
